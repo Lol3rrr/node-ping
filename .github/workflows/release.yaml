@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Install musl tooling
+      run: apt install musl-tools
     - name: Add musl target
       run:  rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
     - name: Build
