@@ -9,13 +9,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install musl tooling
-      run: sudo apt install musl-tools
+      run: sudo apt install musl-tools clang llvm -y
     - name: Add musl target
       run:  rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
     - name: Build
       run: |
         cargo build --release --target x86_64-unknown-linux-musl
         cargo build --release --target aarch64-unknown-linux-musl
+      env:
+          CC_aarch64_unknown_linux_musl: "clang"
+          AR_aarch64_unknown_linux_musl: "llvm-ar"
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-Clink-self-contained=yes -Clinker=rust-lld"
     - name: version
       run: echo "::set-output name=version::$(./target/x86_64-unknown-linux-musl/release/node-ping --version)"
       id: version
