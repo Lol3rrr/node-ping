@@ -7,6 +7,7 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use clap::Parser;
 
 #[derive(Debug, Parser)]
+#[command(version)]
 struct Args {
     #[clap(long = "config", default_value = "config.yaml")]
     config: PathBuf,
