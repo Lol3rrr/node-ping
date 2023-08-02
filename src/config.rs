@@ -17,4 +17,10 @@ pub enum NotificationTarget {
 pub struct Config {
     pub nodes: Vec<ConfigNode>,
     pub notify_target: NotificationTarget,
+    #[serde(default = "default_ping_interval")]
+    pub ping_interval: u64,
+}
+
+pub fn default_ping_interval() -> u64 {
+    30
 }

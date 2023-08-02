@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use node::Node;
+use rand::Rng;
 
 use crate::{config::NotificationTarget, node::NodeStatus};
 
@@ -70,11 +71,24 @@ impl Client {
                             tracing::error!("Pinging: {:?}", e);
                         }
                     };
+
+                    // Add some delay between checking different Nodes
+                    let duration = Duration::from_millis(rand::thread_rng().gen_range(2..6));
+                    tokio::time::sleep(duration).await;
                 }
 
-                tracing::info!("Done checking Nodes, waiting 30s");
+                // Add some random jitter to the base delay betwen checking nodes to avoid large
+                // spikes
+                let base_duration_ms: u64 = self.config.ping_interval * 1000;
+                let jitter: i64 = rand::thread_rng().gen_range(0..250);
+                let duration_ms = base_duration_ms
+                    .checked_add_signed(jitter)
+                    .unwrap_or(base_duration_ms);
+                let duration = Duration::from_millis(duration_ms);
 
-                tokio::time::sleep(Duration::from_secs(30)).await;
+                tracing::info!("Done checking Nodes, waiting {:?}", duration);
+
+                tokio::time::sleep(duration).await;
             }
         });
 
