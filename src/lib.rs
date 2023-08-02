@@ -103,7 +103,7 @@ impl Client {
             while let Some(msg) = rx.recv().await {
                 tracing::debug!("Notify {:?}", msg);
 
-                for target in self.config.notify_target.iter() {
+                for target in self.config.notify_targets.iter() {
                     match target {
                         NotificationTarget::DiscordWebhook { url } => {
                             let node = match &msg {
@@ -112,24 +112,9 @@ impl Client {
                                 NotifyMessages::Down { node } => node,
                             };
 
-                            let content = match &msg {
-                            NotifyMessages::BackUp { node } => format!("The Node {:?} is now back up", node.name()),
-                            NotifyMessages::Pending { node } => format!("The Node {:?} has failed at least one ping and is now pending", node.name()),
-                            NotifyMessages::Down { node } => format!("The Node {:?} has failed multiple pings and is considered down/unreachable", node.name()),
-                        };
-
-                            let title = match &msg {
-                                NotifyMessages::Down { .. } => "Node Down",
-                                NotifyMessages::Pending { .. } => "Node Pending",
-                                NotifyMessages::BackUp { .. } => "Node Back Up",
-                            };
-
                             let value = serde_json::json!({
                                 "username": bot_name,
                                 "embeds": [{
-                                    "title": title,
-                                    "description": content,
-                                }, {
                                     "title": "Node Info",
                                     "fields": [{
                                         "name": "Name",
