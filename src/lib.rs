@@ -8,8 +8,11 @@ use crate::{config::NotificationTarget, node::NodeStatus};
 pub mod config;
 pub mod node;
 
+/// The Client running all the checks
 pub struct Client {
+    /// The Root config for the Client
     config: config::Config,
+    /// The Nodes that are being tracked and their corresponding status/other state
     nodes: Vec<node::Node>,
 }
 
@@ -100,54 +103,56 @@ impl Client {
             while let Some(msg) = rx.recv().await {
                 tracing::debug!("Notify {:?}", msg);
 
-                match &self.config.notify_target {
-                    NotificationTarget::DiscordWebhook { url } => {
-                        let node = match &msg {
-                            NotifyMessages::BackUp { node } => node,
-                            NotifyMessages::Pending { node } => node,
-                            NotifyMessages::Down { node } => node,
-                        };
+                for target in self.config.notify_target.iter() {
+                    match target {
+                        NotificationTarget::DiscordWebhook { url } => {
+                            let node = match &msg {
+                                NotifyMessages::BackUp { node } => node,
+                                NotifyMessages::Pending { node } => node,
+                                NotifyMessages::Down { node } => node,
+                            };
 
-                        let content = match &msg {
+                            let content = match &msg {
                             NotifyMessages::BackUp { node } => format!("The Node {:?} is now back up", node.name()),
                             NotifyMessages::Pending { node } => format!("The Node {:?} has failed at least one ping and is now pending", node.name()),
                             NotifyMessages::Down { node } => format!("The Node {:?} has failed multiple pings and is considered down/unreachable", node.name()),
                         };
 
-                        let title = match &msg {
-                            NotifyMessages::Down { .. } => "Node Down",
-                            NotifyMessages::Pending { .. } => "Node Pending",
-                            NotifyMessages::BackUp { .. } => "Node Back Up",
-                        };
+                            let title = match &msg {
+                                NotifyMessages::Down { .. } => "Node Down",
+                                NotifyMessages::Pending { .. } => "Node Pending",
+                                NotifyMessages::BackUp { .. } => "Node Back Up",
+                            };
 
-                        let value = serde_json::json!({
-                            "username": bot_name,
-                            "embeds": [{
-                                "title": title,
-                                "description": content,
-                            }, {
-                                "title": "Node Info",
-                                "fields": [{
-                                    "name": "Name",
-                                    "value": format!("{:?}", node.name()),
+                            let value = serde_json::json!({
+                                "username": bot_name,
+                                "embeds": [{
+                                    "title": title,
+                                    "description": content,
                                 }, {
-                                    "name": "IP",
-                                    "value": format!("{}", node.addr()),
-                                }, {
-                                    "name": "Status",
-                                    "value": format!("{:?}", node.status()),
+                                    "title": "Node Info",
+                                    "fields": [{
+                                        "name": "Name",
+                                        "value": format!("{:?}", node.name()),
+                                    }, {
+                                        "name": "IP",
+                                        "value": format!("{}", node.addr()),
+                                    }, {
+                                        "name": "Status",
+                                        "value": format!("{:?}", node.status()),
+                                    }],
                                 }],
-                            }],
-                        });
+                            });
 
-                        match client.post(url).json(&value).send().await {
-                            Ok(_r) => {}
-                            Err(e) => {
-                                tracing::error!("Sending Webhook: {:?}", e);
-                            }
-                        };
-                    }
-                };
+                            match client.post(url).json(&value).send().await {
+                                Ok(_r) => {}
+                                Err(e) => {
+                                    tracing::error!("Sending Webhook: {:?}", e);
+                                }
+                            };
+                        }
+                    };
+                }
             }
         });
 
