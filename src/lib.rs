@@ -117,7 +117,7 @@ impl Client {
                             let value = serde_json::json!({
                                 "username": bot_name,
                                 "embeds": [{
-                                    "title": "Node Info",
+                                    "title": format!("Node Info ({:?})", node.status()),
                                     "fields": [{
                                         "name": "Name",
                                         "value": format!("{:?}", node.name()),

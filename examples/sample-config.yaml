@@ -1,0 +1,14 @@
+# Check the nodes availability every 15 seconds instead of the default 30 seconds
+ping_interval: 15
+
+# Some sample nodes, in this case pining cloudflares and goolges dns servers
+nodes:
+  - name: "Cloudflare"
+    addr: "1.1.1.1"
+  - name: "Google"
+    addr: "8.8.8.8"
+
+# The notification targets, in this case a single discord webhook
+notify_targets:
+  - !DiscordWebhook
+      url: "https://example.com"

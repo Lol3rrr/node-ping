@@ -10,3 +10,6 @@
 * Added a random jitter to the delays to distribute the loads on the network
 * Added support for multiple notification targets (even though there is still only the discord webhook)
 	- Renamed Config Option `notify_target` -> `notify_targets`
+
+## v0.2.1
+* Now sends back up notification after a node has been marked as pending
