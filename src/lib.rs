@@ -54,7 +54,9 @@ impl Client {
                         Ok(nstate) => match nstate {
                             NodeStatus::Unknown => {}
                             NodeStatus::Up => {
-                                if prev_state == NodeStatus::Down {
+                                if prev_state == NodeStatus::Down
+                                    || prev_state == NodeStatus::Pending
+                                {
                                     tx.send(NotifyMessages::BackUp { node: node.clone() })
                                         .expect("The Notify Task should never stop");
                                 }
